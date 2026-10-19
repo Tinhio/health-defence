@@ -6,7 +6,7 @@ Projet NSI (Terminale) : un jeu de tower defence en Python avec pygame.
 
 ### Méthode 1 — sans git (la plus simple)
 
-1. Ouvrir la page du dépôt sur GitHub.
+1. Ouvrir la page du dépôt : https://github.com/Tinhio/health-defence
 2. Cliquer sur le bouton vert **Code**, puis **Download ZIP**.
 3. Décompresser l'archive où tu veux (le Bureau, par exemple).
 4. Ouvrir le dossier obtenu : il contient `Jeu.py`, `Classe.py` et les images.
@@ -14,7 +14,7 @@ Projet NSI (Terminale) : un jeu de tower defence en Python avec pygame.
 ### Méthode 2 — avec git
 
 ```bash
-git clone <URL_DU_DEPOT>
+git clone https://github.com/Tinhio/health-defence.git
 ```
 
 ## Lancer le jeu
