@@ -25,10 +25,8 @@ coeur = pygame.image.load('Image/coeur.png')
 fin_x, fin_y = Classe.coordonnees[-1]  # dernier point du parcours
 coeur_rect = coeur.get_rect(center=(fin_x - 70, fin_y + 24))  # centre sur la piste
 
-# petites coeurs de vie : memes proportions que coeur.png, en haut a droite
+# petits coeurs de vie : memes proportions que coeur.png
 coeur_redimention = pygame.transform.scale(coeur, (24, 20))
-vie_x, vie_y = 700, 50  # centre du premier coeur
-coeur_vie = coeur_redimention.get_rect(center=(vie_x, vie_y))  # gabarit fixe : on le deplace sans le modifier
 
 liste_balles = []  # lasers en vol
 compteur = 0  # images ecoulees depuis le dernier tir
@@ -39,8 +37,19 @@ angle = 0  # orientation de la tour (0 = droite quand il n'y a plus d'ennemi)
 
 vie = 3
 
-police_gameOver = pygame.font.SysFont("Arial", 64)
-police_score = pygame.font.SysFont("Arcade")
+score = 0
+
+piece = 0
+
+# piece de monnaie affichee apres le texte Argent (pygame ne lit pas le .avif : version png)
+# minuscules obligatoires : 'piece.png' existe vraiment sous ce nom
+piece_image = pygame.transform.scale(pygame.image.load('Image/piece.png'), (32, 32))
+
+# police pixel art style arcade (Police Press Start 2P, dossier Font/)
+chemin_police = 'Font/PressStart2P-Regular.ttf'
+police_gameOver = pygame.font.Font(chemin_police, 48)
+police_message = pygame.font.Font(chemin_police, 16)
+police_score = pygame.font.Font(chemin_police, 16)
 game_over = False
 
 horloge = pygame.time.Clock()
@@ -53,13 +62,18 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
     # dessin du fond
     screen.blit(fond,(0,0))
 
+    # infos alignees a gauche en x=640 : coeurs, score, argent
+    for i in range(vie) :  # un coeur par vie restante
+        screen.blit(coeur_redimention, (640 + i * 30, 43))
+    screen.blit(police_score.render(f'Score :{score}', True, (0, 0, 0)), (640, 75))
+    texte = police_score.render(f'Argent :{piece}', True, (0, 0, 0))
+    screen.blit(texte, (640, 105))
+    screen.blit(piece_image, (640 + texte.get_width() + 6, 105))
+
+
     # le coeur est dessine avant les ennemis pour qu'ils passent devant
     screen.blit(coeur, coeur_rect)
 
-    # un coeur par vie restante
-    for i in range(3) :
-        if i < vie :
-            screen.blit(coeur_redimention, (vie_x + i * 32, vie_y))
 
     # visee : sur le premier ennemi de la liste (le plus avance)
     if liste_ennemis :
@@ -130,7 +144,7 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
         screen.fill((30,30,30))
         texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
-        texte = police_gameOver.render("Appuie sur R pour recommencer", True, (255, 0, 0))
+        texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 450)))
         pygame.display.update()
         horloge.tick(60)
