@@ -20,7 +20,7 @@ class Ennemi_1() : # classe pour créer les ennemis
         self.position = coordonnees[0][0]  # position horizontale initiale
         self.hauteur = coordonnees[0][1]   # position verticale initiale
         self.etape = 1  # étape actuelle du parcours
-        self.vitesse = 5  # pixels parcourus à chaque image
+        self.vitesse = 2  # pixels parcourus à chaque image
         self.vivant = True
 
     def deplacer(self):
@@ -44,7 +44,7 @@ class Tour ():
         self.image = pygame.image.load('tour.png')
         self.position = 400
         self.hauteur = 200
-        self.cadence = 1000  # nombre d'images entre deux tirs
+        self.cadence = 100  # nombre d'images entre deux tirs
 
 class Balle ():  # un laser tire par la tour
     def __init__(self, x, y, dx, dy):
