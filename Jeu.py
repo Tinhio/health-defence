@@ -138,7 +138,7 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
         mechant.deplacer()
         screen.blit(mechant.image, (mechant.position, mechant.hauteur))
         # contact avec le coeur : l'ennemi est detruit et fait perdre une vie
-        if mechant.position > 830 : # 830 = centre du coeur
+        if mechant.position > 780 :
             liste_ennemis.remove(mechant) # suppression de l'ennemi qui touche le coeur
             vie -= 1
     
