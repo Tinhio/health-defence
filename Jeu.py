@@ -11,7 +11,7 @@ pygame.init()
 screen = pygame.display.set_mode((900,600))
 pygame.display.set_caption("Space Invaders") # titre de la fenêtre
 # chargement de l'image de fond
-fond = pygame.image.load('background.png')
+fond = pygame.image.load('Image/background.png')
 
 liste_ennemis = []
 mechant = Classe.Ennemi_1()
@@ -21,7 +21,7 @@ liste_ennemis.append(mechant)
 la_tour = Classe.Tour()
 
 # coeur a defendre : pose au bout du chemin, juste avant la sortie
-coeur = pygame.image.load('coeur.png')
+coeur = pygame.image.load('Image/coeur.png')
 fin_x, fin_y = Classe.coordonnees[-1]  # dernier point du parcours
 coeur_rect = coeur.get_rect(center=(fin_x - 70, fin_y + 24))  # centre sur la piste
 
@@ -39,7 +39,8 @@ angle = 0  # orientation de la tour (0 = droite quand il n'y a plus d'ennemi)
 
 vie = 3
 
-police = pygame.font.SysFont("Arial", 64)
+police_gameOver = pygame.font.SysFont("Arial", 64)
+police_score = pygame.font.SysFont("Arcade")
 game_over = False
 
 horloge = pygame.time.Clock()
@@ -127,9 +128,9 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
 
     if game_over == True :
         screen.fill((30,30,30))
-        texte = police.render("GAME OVER", True, (255, 0, 0))
+        texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
-        texte = police.render("Appuie sur R pour recommencer", True, (255, 0, 0))
+        texte = police_gameOver.render("Appuie sur R pour recommencer", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 450)))
         pygame.display.update()
         horloge.tick(60)
