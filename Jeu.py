@@ -13,8 +13,8 @@ pygame.display.set_caption("Space Invaders") # titre de la fenêtre
 # chargement de l'image de fond
 fond = pygame.image.load('Image/background.png')
 
-liste_ennemis = []
-mechant = Classe.Ennemi_1()
+liste_ennemis = [] # ennemis a l'ecran ; le premier de la liste est le plus avance
+mechant = Classe.Ennemi_1() # premier ennemi de la partie
 liste_ennemis.append(mechant)
 
 # creation de la tour posee sur la carte
@@ -31,15 +31,15 @@ coeur_redimention = pygame.transform.scale(coeur, (24, 20))
 liste_balles = []  # lasers en vol
 compteur = 0  # images ecoulees depuis le dernier tir
 
-compteur_apparition = 0
+compteur_apparition = 0 # images ecoulees depuis le dernier ennemi cree
 
 angle = 0  # orientation de la tour (0 = droite quand il n'y a plus d'ennemi)
 
-vie = 3 
+vie = 3 # vies restantes : autant de coeurs affiches en haut
 
-score = 0
+score = 0 # points gagnes
 
-piece = 0
+piece = 0 # argent gagne, en pieces
 
 # piece de monnaie affichee apres le texte Argent (pygame ne lit pas le .avif : version png)
 # minuscules obligatoires : 'piece.png' existe vraiment sous ce nom
@@ -55,47 +55,17 @@ game_over = False
 
 
 
-horloge = pygame.time.Clock()
+horloge = pygame.time.Clock() # sert a limiter le jeu a 60 images par seconde
 
 ### BOUCLE DE JEU  ###
 running = True # variable pour laisser la fenêtre ouverte
 
 
 while running : # boucle infinie pour laisser la fenêtre ouverte
-    ### Gestion des événements  ###
-    for event in pygame.event.get() : # parcours de tous les event pygame dans cette fenêtre
-        if event.type == pygame.QUIT : # fermeture de la fenêtre
-            running = False
-            sys.exit() # pour fermer correctement
-        # recommence une partie, seulement si la precedente est perdue
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and game_over :
-            liste_ennemis.clear()
-            liste_balles.clear()
-            vie = 3
-            score = 0
-            piece = 0
-            game_over = False
-            compteur = 0
-            compteur_apparition = 0
-            angle = 0
-            mechant = Classe.Ennemi_1()
-            liste_ennemis.append(mechant)
-
-    # partie perdue : on affiche l'ecran de fin et on arrete la simulation
-    if game_over :
-        screen.fill((30,30,30))
-        texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
-        screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
-        texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
-        screen.blit(texte, texte.get_rect(center=(450, 450)))
-        pygame.display.update()
-        horloge.tick(60)
-        continue  # on saute la simulation tant que la partie est perdue
-
     # dessin du fond
     screen.blit(fond,(0,0))
 
-    # les trois lignes d'informations, alignees a gauche sur x_info
+    # infos du joueur alignees a gauche sur x=640 : coeurs, score, argent
     for i in range(vie) :  # un coeur par vie restante
         screen.blit(coeur_redimention, (640 + i * 30, 43))
     # texte Argent suivi de l'image de la piece
@@ -103,7 +73,7 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
     screen.blit(texte, (640, 75))
     texte = police_score.render(f'Argent :{piece}', True, (0, 0, 0))
     screen.blit(texte, (640, 105))
-    screen.blit(piece_image, (640 + texte.get_width() + 6, 105))
+    screen.blit(piece_image, (640 + texte.get_width() + 6, 96)) # la piece vient juste apres le texte
 
 
     # le coeur est dessine avant les ennemis pour qu'ils passent devant
@@ -127,6 +97,26 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             compteur = 0
             liste_balles.append(Classe.Balle(la_tour.position + 32, la_tour.hauteur + 32, dx, dy))
 
+    ### Gestion des événements  ###
+    for event in pygame.event.get(): # parcours de tous les event pygame dans cette fenêtre
+        if event.type == pygame.QUIT : # si l'événement est le clic sur la fermeture de la fenêtre
+            running = False # running est sur False
+            sys.exit() # pour fermer correctement
+
+    #recommence une partie, seulement si la precedente est perdue
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and game_over :
+            liste_ennemis.clear()
+            liste_balles.clear()
+            vie = 3
+            game_over = False
+            compteur = 0
+            compteur_apparition = 0
+            angle = 0
+            mechant = Classe.Ennemi_1()
+            liste_ennemis.append(mechant)
+            score = 0
+            piece = 0 # l'argent repart de zero
+
     # apparition d'un nouvel ennemi toutes les 90 images
     compteur_apparition += 1
     if compteur_apparition >= 90 :
@@ -141,11 +131,11 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             liste_ennemis.remove(mechant) # suppression de l'ennemi qui touche le coeur
             vie -= 1
     
-    if vie <= 0 :
+    if vie <= 0 : # plus de coeur : la partie est perdue
         game_over = True
 
     # deplacement et dessin des lasers
-    for balle in liste_balles[:] :  # copie : on retire des balles pendant le parcours
+    for balle in liste_balles[:] : # copie : on retire des balles pendant le parcours
         balle.deplacer()
         img = pygame.transform.rotate(balle.image, balle.angle)
         screen.blit(img, img.get_rect(center=(balle.position, balle.hauteur)))
@@ -155,8 +145,19 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
         elif liste_ennemis and balle.position < liste_ennemis[0].position + 64 and balle.position > liste_ennemis[0].position - 64 and balle.hauteur < liste_ennemis[0].hauteur + 64 and balle.hauteur > liste_ennemis[0].hauteur - 64 :
             liste_balles.remove(balle) # suppression de la balle si elle touche l'ennemi
             liste_ennemis.remove(liste_ennemis[0]) # suppression du premier ennemi si il est touché
-            score += 10 # gain par ennemi detruit
-            piece += 1 # une piece gagnee par ennemi detruit
+            score += 120 # gain par ennemi detruit
+            piece += 5 # pieces gagnees par ennemi detruit
 
-    pygame.display.update()
-    horloge.tick(60)
+    # ecran de fin : il recouvre tout ce qui a ete dessine avant
+    if game_over == True :
+        screen.fill((30,30,30))
+        texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
+        screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
+        texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
+        screen.blit(texte, texte.get_rect(center=(450, 450)))
+        pygame.display.update()
+        horloge.tick(60)
+        continue
+
+    pygame.display.update() # affiche tout ce qui vient d'etre dessine
+    horloge.tick(60) # 60 images par seconde au maximum
