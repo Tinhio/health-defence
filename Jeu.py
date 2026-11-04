@@ -62,6 +62,37 @@ running = True # variable pour laisser la fenêtre ouverte
 
 
 while running : # boucle infinie pour laisser la fenêtre ouverte
+    ### Gestion des événements  ###
+    for event in pygame.event.get(): # parcours de tous les event pygame dans cette fenêtre
+        if event.type == pygame.QUIT : # si l'événement est le clic sur la fermeture de la fenêtre
+            running = False # running est sur False
+            sys.exit() # pour fermer correctement
+
+    # recommence une partie, seulement si la precedente est perdue
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and game_over :
+            liste_ennemis.clear()
+            liste_balles.clear()
+            vie = 3
+            game_over = False
+            compteur = 0
+            compteur_apparition = 0
+            angle = 0
+            mechant = Classe.Ennemi_1()
+            liste_ennemis.append(mechant)
+            score = 0
+            piece = 0 # l'argent repart de zero
+
+    # partie perdue : on affiche l'ecran de fin et on arrete la simulation
+    if game_over :
+        screen.fill((30,30,30))
+        texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
+        screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
+        texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
+        screen.blit(texte, texte.get_rect(center=(450, 450)))
+        pygame.display.update()
+        horloge.tick(60)
+        continue  # on repart au debut de la boucle : rien n'avance pendant le game over
+
     # dessin du fond
     screen.blit(fond,(0,0))
 
@@ -97,26 +128,6 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             compteur = 0
             liste_balles.append(Classe.Balle(la_tour.position + 32, la_tour.hauteur + 32, dx, dy))
 
-    ### Gestion des événements  ###
-    for event in pygame.event.get(): # parcours de tous les event pygame dans cette fenêtre
-        if event.type == pygame.QUIT : # si l'événement est le clic sur la fermeture de la fenêtre
-            running = False # running est sur False
-            sys.exit() # pour fermer correctement
-
-    #recommence une partie, seulement si la precedente est perdue
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_r and game_over :
-            liste_ennemis.clear()
-            liste_balles.clear()
-            vie = 3
-            game_over = False
-            compteur = 0
-            compteur_apparition = 0
-            angle = 0
-            mechant = Classe.Ennemi_1()
-            liste_ennemis.append(mechant)
-            score = 0
-            piece = 0 # l'argent repart de zero
-
     # apparition d'un nouvel ennemi toutes les 90 images
     compteur_apparition += 1
     if compteur_apparition >= 90 :
@@ -127,7 +138,7 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
         mechant.deplacer()
         screen.blit(mechant.image, (mechant.position, mechant.hauteur))
         # contact avec le coeur : l'ennemi est detruit et fait perdre une vie
-        if coeur_rect.colliderect(mechant.image.get_rect(topleft=(int(mechant.position), int(mechant.hauteur)))) :
+        if mechant.position > 830 : # 830 = centre du coeur
             liste_ennemis.remove(mechant) # suppression de l'ennemi qui touche le coeur
             vie -= 1
     
@@ -147,17 +158,6 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             liste_ennemis.remove(liste_ennemis[0]) # suppression du premier ennemi si il est touché
             score += 120 # gain par ennemi detruit
             piece += 5 # pieces gagnees par ennemi detruit
-
-    # ecran de fin : il recouvre tout ce qui a ete dessine avant
-    if game_over == True :
-        screen.fill((30,30,30))
-        texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
-        screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
-        texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
-        screen.blit(texte, texte.get_rect(center=(450, 450)))
-        pygame.display.update()
-        horloge.tick(60)
-        continue
 
     pygame.display.update() # affiche tout ce qui vient d'etre dessine
     horloge.tick(60) # 60 images par seconde au maximum
