@@ -18,8 +18,7 @@ mechant = Classe.Ennemi_1() # premier ennemi de la partie
 liste_ennemis.append(mechant)
 
 # creation de la tour posee sur la carte
-la_tour = Classe.Tour()
-
+la_tour = Classe.Tour('tour_de_base') 
 # coeur a defendre : pose au bout du chemin, juste avant la sortie
 coeur = pygame.image.load('Image/coeur.png')
 fin_x, fin_y = Classe.coordonnees[-1]  # dernier point du parcours
@@ -31,6 +30,8 @@ coeur_redimention = pygame.transform.scale(coeur, (24, 20))
 liste_balles = []  # lasers en vol
 compteur = 0  # images ecoulees depuis le dernier tir
 
+liste_tours = [la_tour]
+
 compteur_apparition = 0 # images ecoulees depuis le dernier ennemi cree
 
 angle = 0  # orientation de la tour (0 = droite quand il n'y a plus d'ennemi)
@@ -39,7 +40,7 @@ vie = 3 # vies restantes : autant de coeurs affiches en haut
 
 score = 0 # points gagnes
 
-piece = 0 # argent gagne, en pieces
+piece = 20 # argent de depart : de quoi payer une tour de base (20 pieces)
 
 # piece de monnaie affichee apres le texte Argent (pygame ne lit pas le .avif : version png)
 # minuscules obligatoires : 'piece.png' existe vraiment sous ce nom
@@ -72,6 +73,8 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
         if event.type == pygame.KEYDOWN and event.key == pygame.K_r and game_over :
             liste_ennemis.clear()
             liste_balles.clear()
+            la_tour = Classe.Tour('tour_de_base')
+            liste_tours = [la_tour]
             vie = 3
             game_over = False
             compteur = 0
@@ -80,13 +83,16 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             mechant = Classe.Ennemi_1()
             liste_ennemis.append(mechant)
             score = 0
-            piece = 0 # l'argent repart de zero
+            piece = 20 # l'argent repart au montant de depart
+            prix = 10 # le prix de l'amelioration repart de zero
 
     # partie perdue : on affiche l'ecran de fin et on arrete la simulation
     if game_over :
         screen.fill((30,30,30))
         texte = police_gameOver.render("GAME OVER", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 300)))  # centré dans la fenêtre 900x600
+        texte = police_message.render(f"Score : {score}", True, (255, 0, 0))
+        screen.blit(texte, texte.get_rect(center=(450, 400)))
         texte = police_message.render("Appuie sur R pour recommencer", True, (255, 0, 0))
         screen.blit(texte, texte.get_rect(center=(450, 450)))
         pygame.display.update()
@@ -104,7 +110,23 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
     screen.blit(texte, (640, 75))
     texte = police_score.render(f'Argent :{piece}', True, (0, 0, 0))
     screen.blit(texte, (640, 105))
-    screen.blit(piece_image, (640 + texte.get_width() + 6, 96)) # la piece vient juste apres le texte
+    screen.blit(piece_image, (640 + texte.get_width() + 2, 96)) # la piece vient juste apres le texte
+
+    x_mouse , y_mouse = pygame.mouse.get_pos()
+    if x_mouse < la_tour.position + 64 and x_mouse > la_tour.position and y_mouse < la_tour.hauteur + 64 and y_mouse > la_tour.hauteur :
+        texte = police_score.render(f"{la_tour.prix_amelioration}", True, (0, 0, 0))
+        screen.blit(texte, (la_tour.position, la_tour.hauteur - 20))
+        screen.blit(piece_image, (la_tour.position + texte.get_width() + 2, la_tour.hauteur - 28)) # la piece vient juste apres le texte
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and piece >= la_tour.prix_amelioration :
+            la_tour.cadence -= 2 # cadence de tir plus rapide si on clique sur la tour
+            piece -= la_tour.prix_amelioration # chaque clic coute 10 pieces
+            la_tour.prix_amelioration = (la_tour.prix_amelioration * 3)//2 # le prix de l'amelioration double a chaque fois
+
+    if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3  :
+        img = pygame.transform.rotate(la_tour.image, angle)
+        # recentrage obligatoire : rotate() agrandit l'image, +32 = demi-taille de la tour
+        screen.blit(img, img.get_rect(center=(la_tour.position + 32, la_tour.hauteur + 32)))
+
 
 
     # le coeur est dessine avant les ennemis pour qu'ils passent devant
@@ -122,15 +144,16 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
     screen.blit(img, img.get_rect(center=(la_tour.position + 32, la_tour.hauteur + 32)))
 
     # tir continu : un laser toutes les la_tour.cadence images, vers l'ennemi
-    if liste_ennemis : # plus d'ennemi a l'ecran : la tour ne tire pas
-        compteur += 1
-        if compteur >= la_tour.cadence :
-            compteur = 0
-            liste_balles.append(Classe.Balle(la_tour.position + 32, la_tour.hauteur + 32, dx, dy))
+    for x in liste_tours :
+        if liste_ennemis : # plus d'ennemi a l'ecran : la tour ne tire pas
+            compteur += 1
+            if compteur >= x.cadence :
+                compteur = 0
+                liste_balles.append(Classe.Balle(x.position + 32, x.hauteur + 32, dx, dy,x.degats)) # le laser part du centre de la tour, vers l'ennemi
 
-    # apparition d'un nouvel ennemi toutes les 90 images
+    # apparition d'un nouvel ennemi toutes les INTERVALLE_APPARITION images
     compteur_apparition += 1
-    if compteur_apparition >= 90 :
+    if compteur_apparition >= 180 :
         compteur_apparition = 0
         liste_ennemis.append(Classe.Ennemi_1())
 
@@ -154,10 +177,16 @@ while running : # boucle infinie pour laisser la fenêtre ouverte
             liste_balles.remove(balle) # suppression de la balle si elle sort de l'écran
         
         elif liste_ennemis and balle.position < liste_ennemis[0].position + 64 and balle.position > liste_ennemis[0].position - 64 and balle.hauteur < liste_ennemis[0].hauteur + 64 and balle.hauteur > liste_ennemis[0].hauteur - 64 :
+            liste_ennemis[0].prendre_degats(balle.degats) # l'ennemi prend les degats de la balle
+            if liste_ennemis[0].vivant == False : # si l'ennemi est mort
+                liste_ennemis.remove(liste_ennemis[0]) # suppression du premier ennemi si il est touché
+                score += 120 # gain par ennemi detruit
+                piece += 6 # pieces gagnees par ennemi detruit
             liste_balles.remove(balle) # suppression de la balle si elle touche l'ennemi
-            liste_ennemis.remove(liste_ennemis[0]) # suppression du premier ennemi si il est touché
-            score += 120 # gain par ennemi detruit
-            piece += 5 # pieces gagnees par ennemi detruit
+
+
+
+        
 
     pygame.display.update() # affiche tout ce qui vient d'etre dessine
     horloge.tick(60) # 60 images par seconde au maximum
